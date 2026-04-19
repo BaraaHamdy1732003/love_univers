@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Universe ✦</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Cinzel:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --gold: #e8c97a;
+    --gold-dim: #a8904a;
+    --rose: #e88fa0;
+    --lavender: #b8a8e8;
+    --cream: #f5eedc;
+    --deep: #04020f;
+    --mid: #0d0820;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--deep);
+    font-family: 'Cormorant Garamond', serif;
+    overflow: hidden;
+    cursor: default;
+  }
+
+  /* ── CANVAS ── */
+  #canvas { position: fixed; inset: 0; z-index: 0; }
+
+  /* ── NEBULA LAYERS ── */
+  .nebula {
+    position: fixed; border-radius: 50%; filter: blur(90px);
+    pointer-events: none; z-index: 1; opacity: 0;
+    animation: nebulaFade 4s ease forwards;
+  }
+  .nb1 { width: 600px; height: 400px; background: radial-gradient(ellipse, rgba(184,168,232,0.18) 0%, transparent 70%); top: -100px; left: -100px; animation-delay: 0.5s; }
+  .nb2 { width: 500px; height: 500px; background: radial-gradient(ellipse, rgba(232,143,160,0.14) 0%, transparent 70%); bottom: -120px; right: -80px; animation-delay: 1s; }
+  .nb3 { width: 700px; height: 300px; background: radial-gradient(ellipse, rgba(232,201,122,0.10) 0%, transparent 70%); top: 40%; left: 20%; animation-delay: 1.5s; }
+  @keyframes nebulaFade { to { opacity: 1; } }
+
+  /* ── INTRO ── */
+  #intro {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: var(--deep);
+    transition: opacity 1.5s ease, visibility 1.5s ease;
+  }
+  #intro.hidden { opacity: 0; visibility: hidden; }
+
+  .intro-eyebrow {
+    font-family: 'Cinzel', serif;
+    letter-spacing: 0.4em;
+    font-size: 0.7rem;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: riseIn 1s ease 0.5s forwards;
+  }
+  .intro-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(3rem, 10vw, 7rem);
+    font-weight: 300;
+    color: var(--cream);
+    line-height: 1;
+    text-align: center;
+    opacity: 0;
+    animation: riseIn 1.2s ease 0.9s forwards;
+  }
+  .intro-title em {
+    font-style: italic;
+    color: var(--gold);
+    display: block;
+  }
+  .intro-sub {
+    margin-top: 2rem;
+    font-size: 1rem;
+    color: rgba(245,238,220,0.5);
+    font-style: italic;
+    opacity: 0;
+    animation: riseIn 1s ease 1.6s forwards;
+  }
+  .intro-btn {
+    margin-top: 3.5rem;
+    padding: 0.85rem 3rem;
+    background: transparent;
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    opacity: 0;
+    animation: riseIn 1s ease 2.2s forwards;
+  }
+  .intro-btn:hover {
+    background: rgba(232,201,122,0.08);
+    border-color: var(--gold);
+    box-shadow: 0 0 40px rgba(232,201,122,0.15);
+  }
+
+  /* ── STAR HINT ── */
+  #hint {
+    position: fixed; bottom: 2.5rem; left: 50%; transform: translateX(-50%);
+    font-size: 0.8rem; letter-spacing: 0.2em; color: rgba(245,238,220,0.35);
+    font-style: italic; z-index: 10; pointer-events: none;
+    opacity: 0; transition: opacity 1s ease;
+  }
+  #hint.visible { opacity: 1; }
+
+  /* ── TOOLTIP ── */
+  #tooltip {
+    position: fixed; z-index: 50; pointer-events: none;
+    max-width: 260px; text-align: center;
+    transform: translateX(-50%);
+    opacity: 0; transition: opacity 0.3s ease;
+  }
+  #tooltip.visible { opacity: 1; }
+  .tt-number {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem; letter-spacing: 0.35em;
+    color: var(--gold-dim); display: block; margin-bottom: 0.4rem;
+  }
+  .tt-text {
+    font-size: 1.1rem; font-weight: 300; font-style: italic;
+    color: var(--cream); line-height: 1.5;
+  }
+  .tt-line {
+    width: 1px; height: 40px; background: linear-gradient(to bottom, var(--gold-dim), transparent);
+    margin: 0.6rem auto 0;
+  }
+
+  /* ── MODAL ── */
+  #modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(4,2,15,0.85); backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden; transition: all 0.5s ease;
+  }
+  #modal-overlay.open { opacity: 1; visibility: visible; }
+  #modal {
+    background: linear-gradient(145deg, #0d0820, #120a28);
+    border: 1px solid rgba(232,201,122,0.25);
+    border-radius: 2px; padding: 3rem 3.5rem;
+    max-width: 480px; width: 90%; text-align: center;
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.5s ease;
+    position: relative;
+  }
+  #modal-overlay.open #modal { transform: translateY(0) scale(1); }
+  .modal-star { font-size: 1.8rem; color: var(--gold); margin-bottom: 1rem; display: block; }
+  .modal-num {
+    font-family: 'Cinzel', serif; font-size: 0.6rem; letter-spacing: 0.45em;
+    color: var(--gold-dim); margin-bottom: 1.2rem; display: block;
+  }
+  .modal-reason {
+    font-size: 1.6rem; font-weight: 300; font-style: italic;
+    color: var(--cream); line-height: 1.5; margin-bottom: 2rem;
+  }
+  .modal-close {
+    background: none; border: 1px solid rgba(232,201,122,0.3);
+    color: var(--gold-dim); font-family: 'Cinzel', serif;
+    font-size: 0.6rem; letter-spacing: 0.35em; padding: 0.6rem 2rem;
+    cursor: pointer; transition: all 0.3s;
+  }
+  .modal-close:hover { border-color: var(--gold); color: var(--gold); }
+  .modal-divider { width: 60px; height: 1px; background: rgba(232,201,122,0.2); margin: 0 auto 1.5rem; }
+
+  /* ── CORNER TITLE ── */
+  #corner {
+    position: fixed; top: 2rem; left: 2.5rem; z-index: 10;
+    opacity: 0; transition: opacity 1s ease;
+  }
+  #corner.visible { opacity: 1; }
+  .corner-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem; font-style: italic; font-weight: 300;
+    color: rgba(245,238,220,0.7); letter-spacing: 0.08em;
+  }
+  .corner-sub {
+    font-family: 'Cinzel', serif; font-size: 0.55rem;
+    letter-spacing: 0.35em; color: var(--gold-dim);
+    margin-top: 0.2rem;
+  }
+
+  @keyframes riseIn {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* shooting star */
+  .shoot {
+    position: fixed; pointer-events: none; z-index: 2;
+    width: 2px; height: 2px; background: white; border-radius: 50%;
+  }
+  .shoot::after {
+    content: ''; position: absolute; right: 0; top: 0;
+    width: 120px; height: 1px;
+    background: linear-gradient(to left, rgba(255,255,255,0.7), transparent);
+    transform-origin: right center;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+<div class="nebula nb1"></div>
+<div class="nebula nb2"></div>
+<div class="nebula nb3"></div>
+
+<!-- Intro screen -->
+<div id="intro">
+  <p class="intro-eyebrow">For you, always</p>
+  <h1 class="intro-title">My <em>Universe</em></h1>
+  <p class="intro-sub">Every star holds a reason I love you</p>
+  <button class="intro-btn" onclick="enterUniverse()">ENTER ✦</button>
+</div>
+
+<!-- Hint -->
+<div id="hint">hover a star to discover · click to read</div>
+
+<!-- Corner label -->
+<div id="corner">
+  <div class="corner-name">My Universe</div>
+  <div class="corner-sub">✦ &nbsp;50 STARS &nbsp;✦</div>
+</div>
+
+<!-- Tooltip -->
+<div id="tooltip">
+  <span class="tt-number" id="tt-num"></span>
+  <span class="tt-text" id="tt-text"></span>
+  <div class="tt-line"></div>
+</div>
+
+<!-- Modal -->
+<div id="modal-overlay" onclick="closeModal(event)">
+  <div id="modal">
+    <span class="modal-star" id="modal-icon">✦</span>
+    <span class="modal-num" id="modal-num"></span>
+    <div class="modal-divider"></div>
+    <p class="modal-reason" id="modal-reason"></p>
+    <button class="modal-close" onclick="closeModal()">CLOSE</button>
+  </div>
+</div>
+
+<script>
+const reasons = [
+  "The way your face appears on my screen and suddenly the distance means nothing",
+  "How you say goodnight across time zones just so I don't sleep alone",
+  "The voice notes you send — I replay them more than I'll ever admit",
+  "How you make me feel close even when an ocean separates us",
+  "The way you screenshot things just to share them with me later",
+  "How our calls always run longer than we planned — neither of us wanting to hang up",
+  "The way you say 'I miss you' like it's the truest thing in the world",
+  "How you remember every little thing I mention, weeks later",
+  "The effort you put in — the calls, the messages, the showing up — every single day",
+  "How you make waiting feel worth it",
+  "The way you've taught me that love isn't about proximity",
+  "How I look at the same moon knowing you're looking too",
+  "The patience you carry — this isn't easy, and you never make me feel guilty for it",
+  "How your laugh sounds through a phone speaker — still my favourite sound",
+  "The way good morning texts from you make the whole day different",
+  "How you've shown me that love grows even across distance",
+  "The way you plan our future like it's already real — because to you, it is",
+  "How you hold me through words when you can't hold me with your arms",
+  "The way you never let time zones be an excuse not to be there",
+  "How you make the countdown to seeing you feel like the most exciting thing alive",
+  "The courage it takes to love like this — and how you do it without flinching",
+  "How you send me things — songs, articles, photos — just thinking of me",
+  "The way your eyes light up on video call when you see my face",
+  "How you've made me realise that missing someone can feel like love in its purest form",
+  "The way you describe where you are so I can picture you there",
+  "How you've never once made the distance feel like a reason to give up",
+  "The way 'soon' sounds beautiful when you say it",
+  "How every reunion feels like the first time, every single time",
+  "The way you trust me — completely, without hesitation",
+  "How you've built a home in me even though we're miles apart",
+  "The inside jokes that exist only in our little world of two",
+  "How you fill the silence on calls with the most ordinary, beautiful things",
+  "The way you still manage to surprise me from so far away",
+  "How you remind me what we're working towards when I feel the distance most",
+  "The way your smile through a screen still undoes me",
+  "How you've made long distance feel less like a burden and more like a love story",
+  "The way you check in on the hard days without me having to ask",
+  "How you make me feel like the luckiest person, even apart",
+  "The way you say my name — even through a phone I feel it",
+  "How you've stayed — through the time zones, the waiting, the missing",
+  "The way letters and packages from you feel like you wrapped yourself inside",
+  "How you make every visit feel like we never left each other",
+  "The way you've made me braver — love like this takes real courage",
+  "How you dream about our life together like it's just around the corner",
+  "The way you've taught me to be present even when we're apart",
+  "How you hold our relationship with both hands — carefully, fiercely",
+  "The way you love me from a distance that would break most people",
+  "How the thought of you gets me through every hard day",
+  "The fact that every mile between us is just a reminder of how far I'd go for you",
+  "Because you are worth every goodbye, every wait, every mile — always"
+];
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let stars = [];
+let animFrameId;
+let universeActive = false;
+let hoveredStar = null;
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', () => { resize(); if (universeActive) buildStars(); });
+
+// ── BACKGROUND TWINKLING STARS ──
+let bgStars = [];
+function buildBgStars() {
+  bgStars = [];
+  for (let i = 0; i < 220; i++) {
+    bgStars.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 0.8 + 0.2,
+      alpha: Math.random(),
+      speed: Math.random() * 0.008 + 0.003,
+      phase: Math.random() * Math.PI * 2
+    });
+  }
+}
+buildBgStars();
+
+// ── NAMED STARS (reasons) ──
+function buildStars() {
+  stars = [];
+  const W = canvas.width, H = canvas.height;
+  const margin = 80;
+  const attempts = 200;
+
+  for (let i = 0; i < reasons.length; i++) {
+    let placed = false;
+    for (let a = 0; a < attempts; a++) {
+      const x = margin + Math.random() * (W - margin * 2);
+      const y = margin + Math.random() * (H - margin * 2);
+      let ok = true;
+      for (const s of stars) {
+        const dx = s.x - x, dy = s.y - y;
+        if (Math.sqrt(dx*dx + dy*dy) < 55) { ok = false; break; }
+      }
+      if (ok) {
+        // color palette
+        const palette = ['#e8c97a','#ffffff','#e88fa0','#b8a8e8','#c8d8f8'];
+        const col = palette[Math.floor(Math.random() * palette.length)];
+        stars.push({
+          x, y,
+          r: Math.random() * 1.8 + 1.2,
+          baseR: 0,
+          targetR: Math.random() * 1.8 + 1.2,
+          alpha: 0,
+          targetAlpha: Math.random() * 0.5 + 0.5,
+          twinklePhase: Math.random() * Math.PI * 2,
+          twinkleSpeed: Math.random() * 0.012 + 0.006,
+          color: col,
+          index: i,
+          hovered: false,
+          glowAlpha: 0
+        });
+        placed = true; break;
+      }
+    }
+    if (!placed) {
+      // force place
+      stars.push({
+        x: margin + Math.random() * (W - margin*2),
+        y: margin + Math.random() * (H - margin*2),
+        r: 1.5, baseR: 0, targetR: 1.5,
+        alpha: 0, targetAlpha: 0.7,
+        twinklePhase: Math.random() * Math.PI * 2,
+        twinkleSpeed: 0.009,
+        color: '#e8c97a', index: i, hovered: false, glowAlpha: 0
+      });
+    }
+  }
+}
+
+function drawStar(ctx, x, y, spikes, outerR, innerR, color, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  let rot = (Math.PI / 2) * 3;
+  const step = Math.PI / spikes;
+  ctx.moveTo(x, y - outerR);
+  for (let i = 0; i < spikes; i++) {
+    ctx.lineTo(x + Math.cos(rot) * outerR, y + Math.sin(rot) * outerR);
+    rot += step;
+    ctx.lineTo(x + Math.cos(rot) * innerR, y + Math.sin(rot) * innerR);
+    rot += step;
+  }
+  ctx.lineTo(x, y - outerR);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+let t = 0;
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  t += 0.016;
+
+  // bg stars
+  for (const s of bgStars) {
+    s.alpha = 0.15 + 0.15 * Math.sin(s.phase + t * s.speed * 60);
+    ctx.save();
+    ctx.globalAlpha = s.alpha;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  if (!universeActive) { animFrameId = requestAnimationFrame(draw); return; }
+
+  // named stars
+  for (const s of stars) {
+    // ease in
+    s.alpha += (s.targetAlpha - s.alpha) * 0.03;
+    s.r += (s.targetR - s.r) * 0.05;
+
+    const twinkle = 0.85 + 0.15 * Math.sin(s.twinklePhase + t * s.twinkleSpeed * 60);
+    const curAlpha = s.alpha * twinkle;
+    const curR = s.r * (s.hovered ? 1.0 : twinkle);
+
+    if (s.hovered) {
+      s.glowAlpha = Math.min(s.glowAlpha + 0.06, 1);
+    } else {
+      s.glowAlpha = Math.max(s.glowAlpha - 0.04, 0);
+    }
+
+    // glow
+    if (s.glowAlpha > 0) {
+      const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, 28 + curR * 6);
+      const gc = s.color === '#ffffff' ? '255,255,255' :
+                 s.color === '#e8c97a' ? '232,201,122' :
+                 s.color === '#e88fa0' ? '232,143,160' :
+                 s.color === '#b8a8e8' ? '184,168,232' : '200,216,248';
+      g.addColorStop(0, `rgba(${gc},${0.45 * s.glowAlpha})`);
+      g.addColorStop(1, `rgba(${gc},0)`);
+      ctx.save(); ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(s.x, s.y, 28 + curR * 6, 0, Math.PI*2);
+      ctx.fill(); ctx.restore();
+
+      // cross sparkle
+      ctx.save();
+      ctx.strokeStyle = s.color;
+      ctx.globalAlpha = 0.5 * s.glowAlpha;
+      ctx.lineWidth = 0.8;
+      const len = 14 + curR * 3;
+      ctx.beginPath(); ctx.moveTo(s.x - len, s.y); ctx.lineTo(s.x + len, s.y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(s.x, s.y - len); ctx.lineTo(s.x, s.y + len); ctx.stroke();
+      ctx.restore();
+    }
+
+    // 4-point star shape for named stars
+    drawStar(ctx, s.x, s.y, 4, curR * 2.2, curR * 0.7, s.color, Math.min(curAlpha + 0.1, 1));
+    // center dot
+    ctx.save(); ctx.fillStyle = '#ffffff'; ctx.globalAlpha = curAlpha;
+    ctx.beginPath(); ctx.arc(s.x, s.y, curR * 0.5, 0, Math.PI*2); ctx.fill(); ctx.restore();
+  }
+
+  animFrameId = requestAnimationFrame(draw);
+}
+draw();
+
+// ── SHOOTING STAR ──
+function shootingStar() {
+  if (!universeActive) return;
+  const el = document.createElement('div');
+  el.className = 'shoot';
+  const y = Math.random() * window.innerHeight * 0.6;
+  const angle = 20 + Math.random() * 15;
+  el.style.cssText = `top:${y}px;left:-10px;transform:rotate(${angle}deg);`;
+  document.body.appendChild(el);
+  const dur = 1200 + Math.random() * 600;
+  const dist = window.innerWidth + 200;
+  el.animate([
+    { transform: `rotate(${angle}deg) translateX(0)`, opacity: 1 },
+    { transform: `rotate(${angle}deg) translateX(${dist}px)`, opacity: 0 }
+  ], { duration: dur, easing: 'ease-in' }).onfinish = () => el.remove();
+  setTimeout(shootingStar, 6000 + Math.random() * 8000);
+}
+
+// ── ENTER ──
+function enterUniverse() {
+  document.getElementById('intro').classList.add('hidden');
+  universeActive = true;
+  buildStars();
+  setTimeout(() => {
+    document.getElementById('hint').classList.add('visible');
+    document.getElementById('corner').classList.add('visible');
+  }, 1200);
+  setTimeout(shootingStar, 3000);
+}
+
+// ── MOUSE ──
+const tooltip = document.getElementById('tooltip');
+const ttNum = document.getElementById('tt-num');
+const ttText = document.getElementById('tt-text');
+
+canvas.addEventListener('mousemove', (e) => {
+  if (!universeActive) return;
+  let found = null;
+  for (const s of stars) {
+    const dx = e.clientX - s.x, dy = e.clientY - s.y;
+    if (Math.sqrt(dx*dx + dy*dy) < 22) { found = s; break; }
+  }
+  // reset
+  for (const s of stars) s.hovered = false;
+
+  if (found) {
+    found.hovered = true;
+    hoveredStar = found;
+    canvas.style.cursor = 'pointer';
+    ttNum.textContent = `REASON NO. ${found.index + 1}`;
+    ttText.textContent = reasons[found.index];
+    const tipY = found.y - 90;
+    tooltip.style.left = found.x + 'px';
+    tooltip.style.top = tipY + 'px';
+    tooltip.classList.add('visible');
+  } else {
+    hoveredStar = null;
+    canvas.style.cursor = 'default';
+    tooltip.classList.remove('visible');
+  }
+});
+
+canvas.addEventListener('mouseleave', () => { tooltip.classList.remove('visible'); for (const s of stars) s.hovered = false; });
+
+canvas.addEventListener('click', (e) => {
+  if (!universeActive) return;
+  for (const s of stars) {
+    const dx = e.clientX - s.x, dy = e.clientY - s.y;
+    if (Math.sqrt(dx*dx + dy*dy) < 22) { openModal(s); return; }
+  }
+});
+
+// touch
+canvas.addEventListener('touchstart', (e) => {
+  if (!universeActive) return;
+  const touch = e.touches[0];
+  for (const s of stars) {
+    const dx = touch.clientX - s.x, dy = touch.clientY - s.y;
+    if (Math.sqrt(dx*dx + dy*dy) < 30) { openModal(s); return; }
+  }
+}, { passive: true });
+
+// ── MODAL ──
+function openModal(s) {
+  const icons = ['✦','✧','⋆','✺','✻'];
+  document.getElementById('modal-icon').textContent = icons[s.index % icons.length];
+  document.getElementById('modal-num').textContent = `REASON NO. ${s.index + 1} OF 50`;
+  document.getElementById('modal-reason').textContent = reasons[s.index];
+  document.getElementById('modal-overlay').classList.add('open');
+  tooltip.classList.remove('visible');
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modal-overlay') && !e.target.classList.contains('modal-close')) return;
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+</script>
+</body>
+</html>
